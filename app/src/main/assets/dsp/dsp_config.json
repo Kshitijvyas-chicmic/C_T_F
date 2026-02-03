@@ -1,0 +1,11 @@
+{
+  "sample_rate": 16000,
+  "n_fft": 1024,
+  "hop_length": 256,
+  "n_mels": 64,
+  "f_min": 600.0,
+  "f_max": 8000,
+  "norm": "None",
+  "log_scale": "10 * log10(power)",
+  "window": "hann"
+}
