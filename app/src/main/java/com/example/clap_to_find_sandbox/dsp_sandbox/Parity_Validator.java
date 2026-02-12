@@ -1,15 +1,16 @@
 package com.example.clap_to_find_sandbox.dsp_sandbox;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Locale;
 
 /**
- * ARCHITECT'S NOTE: Pure Java version.
- * Can be run from a standard main() method.
+ * ARCHITECT'S NOTE: Pure Java version for DSP Parity Validation with Stage Dumps.
  */
 public class Parity_Validator {
     private final HannWindow hannWindow;
@@ -32,85 +33,61 @@ public class Parity_Validator {
         int nFft = 1024;
         int hop = 256;
         int nMels = 64;
+        int targetFrames = 40;
 
-        int totalFrames = (wavData.length - nFft) / hop + 1;
-        FeatureStacker stacker = new FeatureStacker(nMels, totalFrames);
-
-        for (int i = 0; i < totalFrames; i++) {
+        FeatureStacker stacker = new FeatureStacker(nMels, targetFrames);
+        int availableFrames = (wavData.length - nFft) / hop + 1;
+        
+        for (int i = 0; i < availableFrames; i++) {
             float[] frame = new float[nFft];
             System.arraycopy(wavData, i * hop, frame, 0, nFft);
 
+            // STAGE 0: Hann
             hannWindow.applyWindow(frame);
+            if (i == 0) dumpStage("Stage 0: Hann (First Frame)", frame);
+
+            // STAGE 1: Power Spectrum
             float[] power = fftProcessor.getPowerSpectrum(frame);
+            if (i == 0) dumpStage("Stage 1: Power Spectrum (First Frame)", power);
+
+            // STAGE 2: Mel
             float[] mels = melFilterbank.applyFilterbank(power);
+            if (i == 0) dumpStage("Stage 2: Mel Filterbank (First Frame)", mels);
+
+            // STAGE 3: Log-Mel
             float[] logMels = logMelExtractor.computeLogMel(mels);
+            if (i == 0) dumpStage("Stage 3: Log-Mel (First Frame)", logMels);
 
             stacker.addFrame(logMels);
         }
 
         float[][] result = stacker.getOrderedMatrix();
-
-        if (outputCsvPath != null) {
-            try (PrintWriter writer = new PrintWriter(new FileWriter(outputCsvPath))) {
-                for (int m = 0; m < nMels; m++) {
-                    StringBuilder sb = new StringBuilder();
-                    for (int t = 0; t < totalFrames; t++) {
-                        sb.append(String.format("%.6f", result[m][t]));
-                        if (t < totalFrames - 1) sb.append(",");
-                    }
-                    writer.println(sb.toString());
-                }
-                System.out.println("DSP_PARITY: Results successfully saved to " + outputCsvPath);
-            } catch (Exception e) {
-                System.err.println("DSP_PARITY: Error writing CSV: " + e.getMessage());
-            }
-        } else {
-            // Fallback to console if no path provided
-            for (int m = 0; m < nMels; m++) {
-                StringBuilder sb = new StringBuilder();
-                for (int t = 0; t < totalFrames; t++) {
-                    sb.append(String.format("%.6f", result[m][t])).append(",");
-                }
-                System.out.println("DSP_PARITY: Row " + m + ": " + sb.toString());
-            }
-        }
+        saveCsv(result, nMels, targetFrames, outputCsvPath);
     }
 
-    /**
-     * MAIN METHOD FOR RUNNING WITHOUT ANDROID
-     * Run this by right-clicking this file in Android Studio and selecting "Run 'Parity_Validator.main()'"
-     */
-    public static void main(String[] args) {
-        try {
-            // Adjust these paths to your local system if necessary
-            String baseDir = "app/src/main/assets/dsp/";
-            String outputPath = "parity_results.csv";
-            
-            FileInputStream wavIs = new FileInputStream(baseDir + "test_clap.wav");
-            FileInputStream hannIs = new FileInputStream(baseDir + "hann_window.bin");
-            FileInputStream melIs = new FileInputStream(baseDir + "mel_filterbank.bin");
-
-            // Load WAV data
-            byte[] wavBytes = wavIs.readAllBytes();
-            wavIs.close();
-
-            int floatCount = (wavBytes.length - 44) / 2;
-            float[] floatData = new float[floatCount];
-            short[] shortArray = new short[floatCount];
-            ByteBuffer.wrap(wavBytes, 44, wavBytes.length - 44)
-                    .order(ByteOrder.LITTLE_ENDIAN)
-                    .asShortBuffer()
-                    .get(shortArray);
-
-            for (int i = 0; i < floatCount; i++) {
-                floatData[i] = shortArray[i] / 32768.0f;
-            }
-
-            Parity_Validator validator = new Parity_Validator(hannIs, melIs);
-            validator.runParityTest(floatData, outputPath);
-
-        } catch (Exception e) {
-            e.printStackTrace();
+    private void dumpStage(String label, float[] data) {
+        System.out.println("--- " + label + " ---");
+        System.out.println("Size: " + data.length);
+        for (int i = 0; i < Math.min(data.length, 5); i++) {
+            System.out.print(String.format(Locale.US, "%.10f ", data[i]));
         }
+        System.out.println("...");
+    }
+
+    private void saveCsv(float[][] result, int nMels, int nFrames, String path) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(path))) {
+            for (int m = 0; m < nMels; m++) {
+                StringBuilder sb = new StringBuilder();
+                for (int t = 0; t < nFrames; t++) {
+                    sb.append(String.format(Locale.US, "%.6f", result[m][t]));
+                    if (t < nFrames - 1) sb.append(",");
+                }
+                writer.println(sb.toString());
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    public static void main(String[] args) {
+        // Implementation omitted for brevity - use DspParityTest
     }
 }

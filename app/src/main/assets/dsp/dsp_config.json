@@ -1,11 +1,11 @@
 {
-  "sample_rate": 16000,
-  "n_fft": 1024,
-  "hop_length": 256,
-  "n_mels": 64,
-  "f_min": 600.0,
-  "f_max": 8000,
-  "norm": "None",
-  "log_scale": "10 * log10(power)",
-  "window": "hann"
+    "sampleRate": 16000,
+    "windowSizeSamples": 400,
+    "hopSizeSamples": 160,
+    "fftLength": 512,
+    "nMels": 64,
+    "melMinHz": 125.0,
+    "melMaxHz": 7500.0,
+    "modelInputSize": 15600,
+    "expectedFrames": 96
 }

@@ -26,7 +26,7 @@ public class ParityValidatorTest {
         AssetManager assets = ApplicationProvider.getApplicationContext().getAssets();
 
         // Load Hann window from assets
-        try (InputStream hannIs = assets.open("hann_window_frozen.bin")) {
+        try (InputStream hannIs = assets.open("dsp/hann_window.bin")) {
             hannWindow = new HannWindow(hannIs, nFft);
         }
 
@@ -34,7 +34,7 @@ public class ParityValidatorTest {
         fftProcessor = new FFTProcessor(nFft);
 
         // Load Mel filterbank matrix from assets
-        try (InputStream melIs = assets.open("mel_filterbank.bin")) {
+        try (InputStream melIs = assets.open("dsp/mel_filterbank.bin")) {
             melFilterbank = new MelFilterbank(melIs, nMels, nFft / 2 + 1);
         }
 
