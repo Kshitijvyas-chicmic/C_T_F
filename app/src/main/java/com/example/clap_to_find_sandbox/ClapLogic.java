@@ -20,9 +20,9 @@ public class ClapLogic {
 
     // Config
     private static final long MAX_SEQUENCE_DURATION_MS = 3000; // 3 Seconds to finish clapping
-    private static final long MIN_INTERVAL_MS = 150;           // Ignore echoes (< 150ms)
+    //private static final long MIN_INTERVAL_MS = 150;           // Ignore echoes (< 150ms)
     //private static final long RESET_TIMEOUT_MS = 3000;         // Reset if idle for 3s
-
+    private static final long MIN_INTERVAL_MS = 30; // Ignore echoes (< 150ms)
     public interface TriggerAction {
         void onTrigger();
     }

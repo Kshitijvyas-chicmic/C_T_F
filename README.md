@@ -38,3 +38,19 @@ A high-performance Android application designed to detect claps in real-time and
 3.  **Real-time Buffer Management**: Used a sliding window inference buffer (`System.arraycopy`) to maintain a continuous 0.975s history of audio, allowing YAMNet to see the full context of a sound even if it starts between frames.
 4.  **Foreground Service Type**: Implemented `foregroundServiceType="microphone"` to comply with Android 10+ privacy requirements, ensuring the app is not killed by the OS while listening in the background.
 5.  **Thread Safety**: Used `volatile` flags and `synchronized` blocks in the detector to ensure the audio thread and UI thread never collide, preventing crashes during rapid detection events.
+
+🔑 Canonical principles for mobile clap detection
+
+16 kHz is enough — temporal resolution matters more than Nyquist bragging rights
+
+Impulse sounds need time context, not just spectral precision
+
+Low thresholds are fine if higher-level logic exists
+
+Echo suppression + pattern logic is mandatory in real rooms
+
+Parity between training DSP and runtime DSP is non-negotiable
+
+Distance robustness comes from normalization + logic, not higher SR
+
+Logs that look “busy” usually mean the system is alive and sensitive

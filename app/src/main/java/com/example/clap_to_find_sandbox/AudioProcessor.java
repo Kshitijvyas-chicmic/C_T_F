@@ -150,8 +150,8 @@ public class AudioProcessor implements Runnable {
                 clapLogic.checkTimeout(); // Maintain state
 
                 // 5. Detection Trigger
-                if (frameCount >= 10 && isImpulse) { // Wait for buffer warmup ~10 frames
-                    
+                //if (frameCount >= 10 && isImpulse) { // Wait for buffer warmup ~10 frames
+                if (frameCount >= 40 && isImpulse) {  //wait for buffer warmup for 400 ms
                     // Pass RAW WAVEFORM to YAMNet
                     float probability = detector.detect(inferenceBuffer);
                     listener.onConfidenceUpdate(probability);
